@@ -1,19 +1,19 @@
 {
-  "name": "n8n-nodes-<...>",
+  "name": "n8n-nodes-fetchfox",
   "version": "0.1.0",
-  "description": "",
+  "description": "n8n node to scrape data using FetchFox",
   "keywords": [
     "n8n-community-node-package"
   ],
   "license": "MIT",
-  "homepage": "",
+  "homepage": "https://fetchfox.ai",
   "author": {
-    "name": "",
-    "email": ""
+    "name": "FetchFox",
+    "email": "help@fetchfoxai.com"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/<...>/n8n-nodes-<...>.git"
+    "url": "https://github.com/fetchfox/n8n-nodes-fetchfox"
   },
   "engines": {
     "node": ">=18.10",
@@ -36,12 +36,10 @@
   "n8n": {
     "n8nNodesApiVersion": 1,
     "credentials": [
-      "dist/credentials/ExampleCredentialsApi.credentials.js",
-      "dist/credentials/HttpBinApi.credentials.js"
+      "dist/credentials/FetchFoxApi.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/ExampleNode/ExampleNode.node.js",
-      "dist/nodes/HttpBin/HttpBin.node.js"
+      "dist/nodes/FetchFox/FetchFox.node.js"
     ]
   },
   "devDependencies": {
@@ -54,5 +52,9 @@
   },
   "peerDependencies": {
     "n8n-workflow": "*"
+  },
+  "dependencies": {
+    "n8n-core": "^1.14.1",
+    "request": "^2.88.2"
   }
 }
