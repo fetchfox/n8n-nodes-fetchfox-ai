@@ -8,14 +8,17 @@ import {
 	IRequestOptions,
 } from 'n8n-workflow';
 
+const host = 'https://staging.fetchfox.ai';
+
 export class FetchFox implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'FetchFox',
-		name: 'FetchFox',
+		displayName: 'FetchFox 2',
+		name: 'FetchFox 2',
 		icon: 'file:fox.svg',
 		group: ['transform'],
 		version: 1,
 		description: 'Scrape data with FetchFox',
+		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
 		defaults: {
 			name: 'FetchFox',
 		},
@@ -32,6 +35,196 @@ export class FetchFox implements INodeType {
 
 		properties: [
 			{
+				displayName: 'Resource',
+				name: 'resource',
+				// type: 'options',
+				type: 'hidden',
+				noDataExpression: true,
+				options: [
+					{
+						name: 'Crawler',
+						value: 'crawler',
+					},
+					{
+						name: 'Extract',
+						value: 'extract',
+					},
+					{
+						name: 'Scraper',
+						value: 'scraper',
+					},
+				],
+				default: 'crawler',
+			},
+
+			// Crawler operations
+			{
+				displayName: 'Operation',
+				name: 'operation',
+				// type: 'options',
+				type: 'hidden',
+				noDataExpression: true,
+				displayOptions: {
+					show: {
+						resource: ['crawler'],
+					},
+				},
+				options: [
+					{
+						name: 'Find URLs using AI prompt',
+						value: 'prompt',
+						action: 'Find URLs using AI prompt',
+					},
+					{
+						name: 'Find URLs matching a URL pattern',
+						value: 'pattern',
+						action: 'Find URLs matching a URL pattern',
+					},
+				],
+				default: 'prompt',
+			},
+
+			// Crawler options
+			{
+				displayName: 'Starting URL for crawl',
+				description: 'FetchFox will start here and look for links',
+				name: 'url',
+				type: 'string',
+				default: '',
+				placeholder: 'https://www.example.com/directory/page-1',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['crawler'],
+						operation: ['prompt'],
+					},
+				},
+			},
+			{
+				displayName: 'Crawl prompt for AI',
+				description: 'FetchFox will find URLs based on this prompt',
+				name: 'url',
+				type: 'string',
+				default: '',
+				placeholder: 'Example: "Look for links to profile pages"',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['crawler'],
+						operation: ['prompt'],
+					},
+				},
+			},
+
+			{
+				displayName: 'URL pattern to find',
+				description: 'FetchFox find URLs matching this pattern. For example, https://www.example.com/directory/*',
+				name: 'url',
+				type: 'string',
+				default: 'https://pokemondb.net/pokedex/*',
+				placeholder: 'https://www.example.com/directory/*',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['crawler'],
+						operation: ['pattern'],
+					},
+				},
+			},
+
+			// Extract operations
+			{
+				displayName: 'Operation',
+				name: 'operation',
+				type: 'options',
+				noDataExpression: true,
+				displayOptions: {
+					show: {
+						resource: ['extract'],
+					},
+				},
+				options: [
+					{
+						name: 'Extract a single item per URL',
+						value: 'single',
+						action: 'Extract a single item per URL',
+					},
+					{
+						name: 'Extract multiple items per URL',
+						value: 'single',
+						action: 'Extract multiple items per URL',
+					},
+				],
+				default: 'single',
+			},
+
+			// Extract options
+			{
+				displayName: 'Target URL for extraction',
+				description: `Enter the URL from which you'd like to scrape data`,
+				name: 'prompt',
+				type: 'string',
+				default: '',
+				placeholder: 'https://www.example.com/directory/page-1',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['extract'],
+					},
+				},
+			},
+			{
+				displayName: 'Data extraction prompt',
+				description: 'Describe the data you would like FetchFox to extract',
+				name: 'prompt',
+				type: 'string',
+				default: '',
+				placeholder: 'Example: the title, author, and price of each book',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['extract'],
+					},
+				},
+			},
+
+			// Scraper operations
+			{
+				displayName: 'Operation',
+				name: 'operation',
+				type: 'options',
+				noDataExpression: true,
+				displayOptions: {
+					show: {
+						resource: ['scraper'],
+					},
+				},
+				options: [
+					{
+						name: 'Run one of your saved scrapers',
+						value: 'saved',
+						action: 'Run one of your saved scrapers',
+					},
+				],
+				default: 'saved',
+			},
+
+			// Extract options
+			{
+				displayName: 'Target URL for extraction',
+				description: `Enter the URL from which you'd like to scrape data`,
+				name: 'prompt',
+				type: 'string',
+				default: '',
+				placeholder: 'https://www.example.com/directory/page-1',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['extract'],
+					},
+				},
+			},
+			{
 				displayName: 'Select scraper',
 				description: 'Which scraper would you like data from?',
 				name: 'scrapeId',
@@ -42,8 +235,13 @@ export class FetchFox implements INodeType {
 				typeOptions: {
 					loadOptionsMethod: 'getScrapes',
 				},
-			},
 
+				displayOptions: {
+					show: {
+						resource: ['scraper'],
+					},
+				},
+			},
 			{
 				displayName: 'New run, or just get latest results?',
 				description: 'Do you want to do new run of this scraper, or simply pull the results from the most recent run?',
@@ -56,16 +254,65 @@ export class FetchFox implements INodeType {
 					loadOptionsMethod: 'getModes',
 					loadOptionsDependsOn: ['scrapeId'],
 				},
+
+				displayOptions: {
+					show: {
+						resource: ['scraper'],
+					},
+				},
 			},
 
+			// Globally available
 			{
 				displayName: 'Max number of results',
 				description: 'What is the most results the scraper should find',
 				name: 'limit',
-				default: 100,
+				default: 10,
 				required: true,
 				type: 'number',
+
+				displayOptions: {
+					show: {
+						resource: ['scraper', 'crawler', 'extract'],
+					},
+				},
 			},
+
+			// {
+			// 	displayName: 'Operation',
+			// 	name: 'operation',
+			// 	type: 'options',
+			// 	noDataExpression: true,
+			// 	displayOptions: {
+			// 		show: {
+			// 			resource: ['scrape'],
+			// 		},
+			// 	},
+			// 	options: [
+			// 	],
+			// 	default: 'crawl',
+			// },
+
+
+			// {
+			// 	displayName: 'Starting URL',
+			// 	description: 'What is the starting URL for the crawl?',
+			// 	name: 'url',
+			// 	default: '',
+			// 	required: true,
+			// 	type: 'string',
+			// },
+
+			// todo: query
+
+			// {
+			// 	displayName: 'Max number of results',
+			// 	description: 'What is the most results the scraper should find',
+			// 	name: 'limit',
+			// 	default: 100,
+			// 	required: true,
+			// 	type: 'number',
+			// },
 		],
 	};
 
@@ -76,100 +323,103 @@ export class FetchFox implements INodeType {
 		},
 	};
 
-	// The execute method will go here
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-		console.log('EXECUTE HERE');
 		const data = this.getExecuteData();
 		console.log('exec data f', data);
 		console.log('exec data d', JSON.stringify(data.data));
-		console.log('exec data s', data.source);
 
-		const scrapeId = data.node.parameters.scrapeId;
-		const mode = data.node.parameters.mode;
-		const limit = data.node.parameters.mode;
-		let jobId: any;
+		const { resource, operation } = data.node.parameters;
 
-		if (mode == 'run') {
-			const resp = await this.helpers.requestWithAuthentication.call(
-				this,
-				'fetchFoxApi',
-				{
-					method: 'POST',
-					body: { limit },
-					uri: `https://fetchfox.ai/api/v2/scrapes/${scrapeId}/run`,
-					json: true,
-				});
-			console.log('run resp', resp);
-			jobId = resp.jobId;
+		switch (`${resource}:${operation}`) {
+			case 'crawler:pattern':
+				return executeCrawlerPattern(this);
 
-			const promise = new Promise(async (ok) => {
-				let count = 0;
-				const poll = async () => {
-					this.sendMessageToUI('poll: ' + count++);
-					console.log('poll', jobId);
-					const resp = await this.helpers.requestWithAuthentication.call(
-						this,
-						'fetchFoxApi',
-						{
-							method: 'GET',
-							uri: `https://fetchfox.ai/api/v2/jobs/${jobId}`,
-							json: true,
-						});
-
-					console.log('poll got:', resp);
-					const done = (
-						resp.done ||
-						(limit && (resp.results?.items || []).length >= limit)
-					);
-
-					if (done) {
-						ok(null);
-					} else {
-						setTimeout(poll, 1000);
-					}
-				}
-				await poll();
-			});
-
-			await promise;
-
-		} else {
-			jobId = 'latest';
+			default:
+				throw new Error('unhandled');
 		}
 
-		console.log(jobId);
-		const resp = await this.helpers.requestWithAuthentication.call(
-			this,
-			'fetchFoxApi',
-			{
-				method: 'GET',
-				uri: `https://fetchfox.ai/api/v2/results/${scrapeId}/${jobId}`,
-				json: true,
-			});
-
-		const clean = [];
-		for (const item of resp.results) {
-			const copy: any = {};
-			for (const [k, v] of Object.entries(item)) {
-				if (k.startsWith('_')) continue;
-				copy[k] = v;
-			}
-
-			// for (const k of ['_url', '_htmlUrl', '_sourceUrl']) {
-			// 	if (item[k]) {
-			// 		copy[k] = item[k];
-			// 	}
-			// }
-
-			clean.push(copy);
-		}
-
-		const out = [this.helpers.returnJsonArray(clean)];
-		// console.log(out);
-		return out;
+		return [];
 	}
 }
 
+async function executeCrawlerPattern(ex: IExecuteFunctions): Promise <INodeExecutionData[][]> {
+	const d = ex.getExecuteData();
+	const { limit, url } = d.node.parameters;
+	const workflow = {
+		options: { limit },
+		steps: [
+			{
+				name: 'const',
+				args: {
+					items: [{ url }],
+				},
+			},
+			{
+				name: 'crawl',
+				args: {},
+			},
+		],
+	};
+
+	return runWorkflow(ex, workflow);
+}
+
+async function runWorkflow(ex: IExecuteFunctions, workflow: any): Promise <INodeExecutionData[][]> {
+	console.log('workflow', workflow);
+	const workflowResp = await ex.helpers.requestWithAuthentication.call(
+		ex,
+		'fetchFoxApi',
+		{
+			method: 'POST',
+			uri: `${host}/api/v2/workflows`,
+			json: true,
+			body: workflow,
+		});
+	console.log('resp', workflowResp);
+	const workflowId = workflowResp.id;
+
+	const runResp = await ex.helpers.requestWithAuthentication.call(
+		ex,
+		'fetchFoxApi',
+		{
+			method: 'POST',
+			uri: `${host}/api/v2/workflows/${workflowId}/run`,
+			json: true,
+		});
+	console.log('run resp', runResp);
+	const jobId = runResp.jobId;
+
+	const items = await new Promise(async (ok) => {
+		let count = 0;
+		const poll = async () => {
+			console.log('poll', count++, jobId);
+			let resp;
+			try {
+				resp = await ex.helpers.requestWithAuthentication.call(
+					ex,
+					'fetchFoxApi',
+					{
+						method: 'GET',
+						uri: `https://fetchfox.ai/api/v2/jobs/${jobId}`,
+						json: true,
+					});
+			} catch (e) {
+				console.log('fetch error:', e);
+			}
+
+			console.log('poll got:', resp);
+			if (resp?.done) {
+				ok(cleanItems(resp.results?.items || []));
+			} else {
+				setTimeout(poll, 1000);
+			}
+		}
+		await poll();
+	});
+	console.log('results', items);
+
+	return [ex.helpers.returnJsonArray(items)];
+}
 
 async function getModes(
 	this: ILoadOptionsFunctions,
@@ -234,4 +484,17 @@ async function getScrapes(
 	}
 
 	return results;
+}
+
+type Item = { [key: string]: any };
+function cleanItems(items: Item[]): Item[] {
+  return items.map(item => {
+    const clean: Item = {};
+    for (const key in item) {
+      if (!key.startsWith('_')) {
+        clean[key] = item[key];
+      }
+    }
+    return clean;
+  });
 }
