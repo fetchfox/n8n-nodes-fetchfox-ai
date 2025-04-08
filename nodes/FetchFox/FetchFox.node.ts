@@ -14,7 +14,7 @@ const host = 'https://staging.fetchfox.ai';
 export class FetchFox implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'FetchFox AI Scraper',
-		name: 'FetchFox',
+		name: 'fetchFox',
 		icon: 'file:fox.svg',
 		group: ['transform'],
 		version: 1,
@@ -76,14 +76,14 @@ export class FetchFox implements INodeType {
 				},
 				options: [
 					{
-						name: 'Find URLs using AI prompt',
+						name: 'Find URLs Using AI Prompt',
 						value: 'prompt',
-						action: 'Find URLs using AI prompt',
+						action: 'Find pages using a prompt',
 					},
 					{
-						name: 'Find URLs matching a URL pattern',
+						name: 'Find URLs Matching a URL Pattern',
 						value: 'pattern',
-						action: 'Find URLs matching a URL pattern',
+						action: 'Find pages matching a pattern',
 					},
 				],
 				default: 'prompt',
@@ -91,7 +91,7 @@ export class FetchFox implements INodeType {
 
 			// Crawl options
 			{
-				displayName: 'Starting URL for crawl',
+				displayName: 'Starting URL for Crawl',
 				description: 'FetchFox will start here and look for links',
 				name: 'url',
 				type: 'string',
@@ -106,7 +106,7 @@ export class FetchFox implements INodeType {
 				},
 			},
 			{
-				displayName: 'Crawl prompt for AI',
+				displayName: 'Crawl Prompt for AI',
 				description: 'FetchFox will find URLs based on this prompt',
 				name: 'query',
 				type: 'string',
@@ -122,7 +122,7 @@ export class FetchFox implements INodeType {
 			},
 
 			{
-				displayName: 'URL pattern to find. Include at least one * wildcard',
+				displayName: 'URL Pattern to Find. Include at Least One * Wildcard',
 				description: 'FetchFox find URLs matching this pattern. For example, https://www.example.com/directory/*. Pattern must have at least on * in it',
 				name: 'url',
 				type: 'string',
@@ -137,17 +137,17 @@ export class FetchFox implements INodeType {
 				},
 			},
 			{
-				displayName: 'Get HTML, text, and markdown?',
+				displayName: 'Get HTML, Text, and Markdown?',
 				description: 'If you select "yes", we will get the page HTML, and also convert it into text and markdown',
 				name: 'pull',
 				type: 'options',
 				options: [
 					{
-						name: 'Yes, get HTML, text, and markdown (slower)',
+						name: 'Yes, Get HTML, Text, and Markdown (Slower)',
 						value: 'yes',
 					},
 					{
-						name: 'No, only get the URLs (faster)',
+						name: 'No, only Get the URLs (Faster)',
 						value: 'no',
 					},
 				],
@@ -175,12 +175,12 @@ export class FetchFox implements INodeType {
 				},
 				options: [
 					{
-						name: 'Extract a single item per URL',
+						name: 'Extract a Single Item per URL',
 						value: 'single',
 						action: 'Extract a single item per URL',
 					},
 					{
-						name: 'Extract multiple items per URL',
+						name: 'Extract Multiple Items per URL',
 						value: 'multiple',
 						action: 'Extract multiple items per URL',
 					},
@@ -190,8 +190,8 @@ export class FetchFox implements INodeType {
 
 			// Extract options
 			{
-				displayName: 'Target URL for extraction',
-				description: `Enter the URL from which you'd like to scrape data`,
+				displayName: 'Target URL for Extraction',
+				description: 'Enter the URL from which you\'d like to scrape data',
 				name: 'url',
 				type: 'string',
 				default: '',
@@ -205,7 +205,7 @@ export class FetchFox implements INodeType {
 			},
 
 			{
-				displayName: 'Data to extract',
+				displayName: 'Data to Extract',
 				name: 'fields',
 				type: 'fixedCollection',
 				typeOptions: {
@@ -226,7 +226,7 @@ export class FetchFox implements INodeType {
 						name: 'extractField',
 						values: [
 							{
-								displayName: 'Field name',
+								displayName: 'Field Name',
 								name: 'name',
 								type: 'string',
 								required: true,
@@ -236,7 +236,7 @@ export class FetchFox implements INodeType {
 								hint: 'Enter the name of the field you want to extract',
 							},
 							{
-								displayName: 'Field description',
+								displayName: 'Field Description',
 								name: 'description',
 								type: 'string',
 								required: true,
@@ -264,7 +264,7 @@ export class FetchFox implements INodeType {
 				},
 				options: [
 					{
-						name: 'Run one of your saved scrapers',
+						name: 'Run One of Your Saved Scrapers',
 						value: 'saved',
 						action: 'Run one of your saved scrapers',
 					},
@@ -274,11 +274,12 @@ export class FetchFox implements INodeType {
 
 			// Scraper options
 			{
-				displayName: 'Select scraper',
+				displayName: 'Select Scraper Name or ID',
 				description: 'Which scraper would you like data from?',
 				name: 'scrapeId',
 				default: '',
 				required: true,
+				noDataExpression: true,
 
 				type: 'options',
 				typeOptions: {
@@ -292,10 +293,11 @@ export class FetchFox implements INodeType {
 				},
 			},
 			{
-				displayName: 'New run, or just get latest results?',
+				displayName: 'New Run, or Just Get Latest Results? Name or ID',
+				noDataExpression: true,
 				description: 'Do you want to do new run of this scraper, or simply pull the results from the most recent run?',
 				name: 'mode',
-				default: 'latest',
+				default: '',
 				required: true,
 
 				type: 'options',
@@ -325,17 +327,17 @@ export class FetchFox implements INodeType {
 				},
 				options: [
 					{
-						name: 'Run pre-built Reddit comments scraper',
+						name: 'Run Pre-Built Reddit Comments Scraper',
 						value: 'reddit',
 						action: 'Run pre-built Reddit comments scraper',
 					},
 					{
-						name: 'Run pre-built Google Maps email scraper',
+						name: 'Run Pre-Built Google Maps Email Scraper',
 						value: 'googleMaps',
 						action: 'Run pre-built Google Maps email scraper',
 					},
 					{
-						name: 'Run pre-built LinkedIn jobs scraper',
+						name: 'Run Pre-Built LinkedIn Jobs Scraper',
 						value: 'linkedIn',
 						action: 'Run pre-built LinkedIn jobs scraper',
 					},
@@ -382,13 +384,12 @@ export class FetchFox implements INodeType {
 			},
 
 			{
-				displayName: 'Sub-reddit, eg. "r/CryptoMarkets"',
+				displayName: 'Sub-Reddit, Eg. "r/CryptoMarkets"',
 				description: 'Which sub-reddit would you like to scrape? You MUST include "r/" prefix',
 				name: 'subreddit',
 				type: 'string',
 				default: '',
 				placeholder: 'Example: "r/CryptoMarkets"',
-				required: false,
 				displayOptions: {
 					show: {
 						resource: ['template'],
@@ -398,13 +399,12 @@ export class FetchFox implements INodeType {
 			},
 
 			{
-				displayName: 'Location to scrape',
+				displayName: 'Location to Scrape',
 				description: 'What location would you like to scrape?',
 				name: 'location',
 				type: 'string',
 				default: '',
 				placeholder: 'Example: "London, UK"',
-				required: false,
 				displayOptions: {
 					show: {
 						resource: ['template'],
@@ -414,13 +414,12 @@ export class FetchFox implements INodeType {
 			},
 
 			{
-				displayName: 'Search keyword',
+				displayName: 'Search Keyword',
 				description: 'What keyword would like search for in your scrape?',
 				name: 'keyword',
 				type: 'string',
 				default: '',
 				placeholder: 'Example: "marketing"',
-				required: false,
 				displayOptions: {
 					show: {
 						resource: ['template'],
@@ -431,12 +430,15 @@ export class FetchFox implements INodeType {
 
 			// Globally available
 			{
-				displayName: 'Max number of results',
-				description: 'What is the most results the scraper should find',
+				displayName: 'Max Number of Results',
+				description: 'Max number of results to return',
 				name: 'limit',
-				default: 10,
+				default: 50,
 				required: true,
 				type: 'number',
+				typeOptions: {
+					minValue: 1,
+				},
 
 				displayOptions: {
 					show: {
@@ -471,9 +473,6 @@ export class FetchFox implements INodeType {
 			case 'template:reddit': return executeTemplateReddit(this);
 			case 'template:googleMaps': return executeTemplateGoogleMaps(this);
 			case 'template:linkedIn': return executeTemplateLinkedIn(this);
-
-			default:
-				throw new Error('unhandled');
 		}
 
 		return [];
@@ -805,7 +804,7 @@ async function getModes(
 
 	const params = this.getCurrentNodeParameters();
 	const options = [{
-		name: 'Run scraper',
+		name: 'Run Scraper',
 		description: 'May take a few minutes or more',
 		value: 'run',
 	}];
@@ -827,7 +826,7 @@ async function getModes(
 		if (len) {
 			options.push({
 				name: 'Use latest results',
-				description: 'Fast, useful for testing. Results will not change unless you re-run the scraper from FetchFox',
+				description: 'Fast, useful for testing. Results will not change unless you re-run the scraper from FetchFox.',
 				value: 'latest',
 			});
 		}
