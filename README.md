@@ -15,3 +15,7 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 ## Tutorial
 
 Read our [FetchFox <> n8n tutorial](https://docs.fetchfox.ai/n8n) for how to use this node to scrape data within your n8n workflow.
+
+## Need help?
+
+Our developers are active on [Discord](https://discord.gg/mM54bwdu59). Join the server to get live help.
