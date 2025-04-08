@@ -250,77 +250,6 @@ export class FetchFox implements INodeType {
 				],
 			},
 
-			// {
-			// 	displayName: 'Extraction field #1 (required)',
-			// 	description: 'Describe the first data you would like FetchFox to extract',
-			// 	name: 'field1',
-			// 	type: 'string',
-			// 	default: '',
-			// 	placeholder: 'Example: "Title of the book"',
-			// 	required: true,
-			// 	displayOptions: {
-			// 		show: {
-			// 			resource: ['extract'],
-			// 		},
-			// 	},
-			// },
-			// {
-			// 	displayName: 'Extraction field #2 (optional)',
-			// 	description: 'Describe the first data you would like FetchFox to extract',
-			// 	name: 'field2',
-			// 	type: 'string',
-			// 	default: '',
-			// 	placeholder: 'Example: "Name of the author"',
-			// 	required: false,
-			// 	displayOptions: {
-			// 		show: {
-			// 			resource: ['extract'],
-			// 		},
-			// 	},
-			// },
-			// {
-			// 	displayName: 'Extraction field #3 (optional)',
-			// 	description: 'Describe the first data you would like FetchFox to extract',
-			// 	name: 'field3',
-			// 	type: 'string',
-			// 	default: '',
-			// 	placeholder: 'Example: "Price of the book in USD"',
-			// 	required: false,
-			// 	displayOptions: {
-			// 		show: {
-			// 			resource: ['extract'],
-			// 		},
-			// 	},
-			// },
-			// {
-			// 	displayName: 'Extraction field #4 (optional)',
-			// 	description: 'Describe the first data you would like FetchFox to extract',
-			// 	name: 'field4',
-			// 	type: 'string',
-			// 	default: '',
-			// 	placeholder: 'Example: "Publication date"',
-			// 	required: false,
-			// 	displayOptions: {
-			// 		show: {
-			// 			resource: ['extract'],
-			// 		},
-			// 	},
-			// },
-			// {
-			// 	displayName: 'Extraction field #5 (optional)',
-			// 	description: 'Describe the first data you would like FetchFox to extract',
-			// 	name: 'field5',
-			// 	type: 'string',
-			// 	default: '',
-			// 	placeholder: 'Example: "Number of stars out of 5.0"',
-			// 	required: false,
-			// 	displayOptions: {
-			// 		show: {
-			// 			resource: ['extract'],
-			// 		},
-			// 	},
-			// },
-
 			// Scraper operations
 			{
 				displayName: 'Operation',
@@ -660,8 +589,6 @@ async function executeTemplateReddit(ex: IExecuteFunctions): Promise <INodeExecu
 	if (subreddit && !('' + subreddit).startsWith('r/')) {
 		subreddit = 'r/' + subreddit;
 	}
-
-	console.log('subreddit', subreddit);
 
 	const workflow = {
 		options: { limit },
