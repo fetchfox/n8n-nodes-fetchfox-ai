@@ -250,7 +250,8 @@ export class FetchFox implements INodeType {
 			{
 				displayName: 'Operation',
 				name: 'operation',
-				type: 'options',
+				// type: 'options',
+				type: 'hidden',
 				noDataExpression: true,
 				displayOptions: {
 					show: {
@@ -321,42 +322,6 @@ export class FetchFox implements INodeType {
 					},
 				},
 			},
-
-			// {
-			// 	displayName: 'Operation',
-			// 	name: 'operation',
-			// 	type: 'options',
-			// 	noDataExpression: true,
-			// 	displayOptions: {
-			// 		show: {
-			// 			resource: ['scrape'],
-			// 		},
-			// 	},
-			// 	options: [
-			// 	],
-			// 	default: 'crawl',
-			// },
-
-
-			// {
-			// 	displayName: 'Starting URL',
-			// 	description: 'What is the starting URL for the crawl?',
-			// 	name: 'url',
-			// 	default: '',
-			// 	required: true,
-			// 	type: 'string',
-			// },
-
-			// todo: query
-
-			// {
-			// 	displayName: 'Max number of results',
-			// 	description: 'What is the most results the scraper should find',
-			// 	name: 'limit',
-			// 	default: 100,
-			// 	required: true,
-			// 	type: 'number',
-			// },
 		],
 	};
 
@@ -369,8 +334,6 @@ export class FetchFox implements INodeType {
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const data = this.getExecuteData();
-		console.log('exec data f', data);
-		console.log('exec data d', JSON.stringify(data.data));
 
 		const { resource, operation } = data.node.parameters;
 
@@ -379,6 +342,7 @@ export class FetchFox implements INodeType {
 			case 'crawler:prompt': return executeCrawlerPrompt(this);
 			case 'extract:single': return executeExtractSingle(this);
 			case 'extract:multiple': return executeExtractMultiple(this);
+			case 'scraper:saved': return executeScraperSaved(this);
 
 			default:
 				throw new Error('unhandled');
@@ -532,6 +496,39 @@ async function executeExtractMultiple(ex: IExecuteFunctions): Promise <INodeExec
 	return runWorkflow(ex, workflow);
 }
 
+async function executeScraperSaved(ex: IExecuteFunctions): Promise <INodeExecutionData[][]> {
+	const d = ex.getExecuteData();
+	const { limit, scrapeId, mode } = d.node.parameters;
+
+	console.log('limit, scrapeId, mode', limit, scrapeId, mode);
+
+	if (mode == 'latest') {
+		const resp = await ex.helpers.requestWithAuthentication.call(
+			ex,
+			'fetchFoxApi',
+			{
+				method: 'GET',
+				uri: `https://fetchfox.ai/api/v2/results/${scrapeId}/latest`,
+				json: true,
+			});
+		const items = resp?.results || []
+		return [ex.helpers.returnJsonArray(cleanItems(items))];
+
+	} else {
+		const resp = await ex.helpers.requestWithAuthentication.call(
+			ex,
+			'fetchFoxApi',
+			{
+				method: 'POST',
+				uri: `${host}/api/v2/scrapes/${scrapeId}/run`,
+				json: true,
+				body: { limit },
+			});
+		const jobId = resp.jobId;
+	  return resultsForJob(ex, jobId);
+	}
+}
+
 async function runWorkflow(ex: IExecuteFunctions, workflow: any): Promise <INodeExecutionData[][]> {
 	console.log('workflow', JSON.stringify(workflow, null, 2));
 	const workflowResp = await ex.helpers.requestWithAuthentication.call(
@@ -556,7 +553,10 @@ async function runWorkflow(ex: IExecuteFunctions, workflow: any): Promise <INode
 		});
 	console.log('run resp', runResp);
 	const jobId = runResp.jobId;
+	return resultsForJob(ex, jobId);
+}
 
+async function resultsForJob(ex: IExecuteFunctions, jobId: string): Promise <INodeExecutionData[][]> {
 	const items: IDataObject[] = await new Promise<IDataObject[]>(async (ok) => {
 		let count = 0;
 		const poll = async () => {
