@@ -13,15 +13,15 @@ const host = 'https://staging.fetchfox.ai';
 
 export class FetchFox implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'FetchFox 3',
-		name: 'FetchFox 3',
+		displayName: 'FetchFox AI Scraper',
+		name: 'FetchFox',
 		icon: 'file:fox.svg',
 		group: ['transform'],
 		version: 1,
-		description: 'Scrape data with FetchFox 3',
-		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
+		description: 'Scrape data with FetchFox',
+		subtitle: '={{$parameter["resource"]}}',
 		defaults: {
-			name: 'FetchFox 3',
+			name: 'FetchFox'
 		},
 		inputs: ['main'],
 		outputs: ['main'],
@@ -43,8 +43,8 @@ export class FetchFox implements INodeType {
 				noDataExpression: true,
 				options: [
 					{
-						name: 'Crawler',
-						value: 'crawler',
+						name: 'Crawl',
+						value: 'crawl',
 					},
 					{
 						name: 'Extract',
@@ -54,20 +54,24 @@ export class FetchFox implements INodeType {
 						name: 'Scraper',
 						value: 'scraper',
 					},
+					{
+						name: 'Pre-Built Scraper',
+						value: 'template',
+					},
 				],
-				default: 'crawler',
+				default: 'crawl',
 			},
 
-			// Crawler operations
+			// Crawl operations
 			{
 				displayName: 'Operation',
 				name: 'operation',
-				// type: 'options',
-				type: 'hidden',
+				type: 'options',
+				// type: 'hidden',
 				noDataExpression: true,
 				displayOptions: {
 					show: {
-						resource: ['crawler'],
+						resource: ['crawl'],
 					},
 				},
 				options: [
@@ -85,7 +89,7 @@ export class FetchFox implements INodeType {
 				default: 'prompt',
 			},
 
-			// Crawler options
+			// Crawl options
 			{
 				displayName: 'Starting URL for crawl',
 				description: 'FetchFox will start here and look for links',
@@ -96,14 +100,14 @@ export class FetchFox implements INodeType {
 				required: true,
 				displayOptions: {
 					show: {
-						resource: ['crawler'],
+						resource: ['crawl'],
 						operation: ['prompt'],
 					},
 				},
 			},
 			{
 				displayName: 'Crawl prompt for AI',
-				description: 'FetchFox will find URLs based on this prompt 33',
+				description: 'FetchFox will find URLs based on this prompt',
 				name: 'query',
 				type: 'string',
 				default: '',
@@ -111,23 +115,47 @@ export class FetchFox implements INodeType {
 				required: true,
 				displayOptions: {
 					show: {
-						resource: ['crawler'],
+						resource: ['crawl'],
 						operation: ['prompt'],
 					},
 				},
 			},
 
 			{
-				displayName: 'URL pattern to find. Required: least one * wildcard',
+				displayName: 'URL pattern to find. Include at least one * wildcard',
 				description: 'FetchFox find URLs matching this pattern. For example, https://www.example.com/directory/*. Pattern must have at least on * in it',
 				name: 'url',
 				type: 'string',
-				default: 'https://pokemondb.net/pokedex/*',
+				default: '',
 				placeholder: 'https://www.example.com/directory/*',
 				required: true,
 				displayOptions: {
 					show: {
-						resource: ['crawler'],
+						resource: ['crawl'],
+						operation: ['pattern'],
+					},
+				},
+			},
+			{
+				displayName: 'Get HTML, text, and markdown?',
+				description: 'If you select "yes", we will get the page HTML, and also convert it into text and markdown',
+				name: 'pull',
+				type: 'options',
+				options: [
+					{
+						name: 'Yes, get HTML, text, and markdown (slower)',
+						value: 'yes',
+					},
+					{
+						name: 'No, only get the URLs (faster)',
+						value: 'no',
+					},
+				],
+				default: 'no',
+				required: true,
+				displayOptions: {
+					show: {
+						resource: ['crawl'],
 						operation: ['pattern'],
 					},
 				},
@@ -137,8 +165,8 @@ export class FetchFox implements INodeType {
 			{
 				displayName: 'Operation',
 				name: 'operation',
-				// type: 'options',
-				type: 'hidden',
+				type: 'options',
+				// type: 'hidden',
 				noDataExpression: true,
 				displayOptions: {
 					show: {
@@ -175,76 +203,123 @@ export class FetchFox implements INodeType {
 					},
 				},
 			},
+
 			{
-				displayName: 'Extraction field #1 (required)',
-				description: 'Describe the first data you would like FetchFox to extract',
-				name: 'field1',
-				type: 'string',
-				default: '',
-				placeholder: 'Example: "Title of the book"',
-				required: true,
+				displayName: 'Data to extract',
+				name: 'fields',
+				type: 'fixedCollection',
+				typeOptions: {
+					multipleValues: true,
+				},
+				placeholder: 'Add data field to extract',
+				default: {},
+				description: 'These fields will be extracted from the target pages',
 				displayOptions: {
 					show: {
 						resource: ['extract'],
 					},
 				},
-			},
-			{
-				displayName: 'Extraction field #2 (optional)',
-				description: 'Describe the first data you would like FetchFox to extract',
-				name: 'field2',
-				type: 'string',
-				default: '',
-				placeholder: 'Example: "Name of the author"',
-				required: false,
-				displayOptions: {
-					show: {
-						resource: ['extract'],
+
+				options: [
+					{
+						displayName: '',
+						name: 'extractField',
+						values: [
+							{
+								displayName: 'Field name',
+								name: 'name',
+								type: 'string',
+								required: true,
+								default: '',
+								description: 'Name the field',
+								placeholder: 'eg. "title"',
+								hint: 'Enter the name of the field you want to extract',
+							},
+							{
+								displayName: 'Field description',
+								name: 'description',
+								type: 'string',
+								required: true,
+								default: '',
+								description: 'Describe the data you are extracting',
+								placeholder: 'eg. "Title of the post"',
+								hint: 'Tell the AI what data it should extract',
+							},
+						],
 					},
-				},
+				],
 			},
-			{
-				displayName: 'Extraction field #3 (optional)',
-				description: 'Describe the first data you would like FetchFox to extract',
-				name: 'field3',
-				type: 'string',
-				default: '',
-				placeholder: 'Example: "Price of the book in USD"',
-				required: false,
-				displayOptions: {
-					show: {
-						resource: ['extract'],
-					},
-				},
-			},
-			{
-				displayName: 'Extraction field #4 (optional)',
-				description: 'Describe the first data you would like FetchFox to extract',
-				name: 'field4',
-				type: 'string',
-				default: '',
-				placeholder: 'Example: "Publication date"',
-				required: false,
-				displayOptions: {
-					show: {
-						resource: ['extract'],
-					},
-				},
-			},
-			{
-				displayName: 'Extraction field #5 (optional)',
-				description: 'Describe the first data you would like FetchFox to extract',
-				name: 'field5',
-				type: 'string',
-				default: '',
-				placeholder: 'Example: "Number of stars out of 5.0"',
-				required: false,
-				displayOptions: {
-					show: {
-						resource: ['extract'],
-					},
-				},
-			},
+
+			// {
+			// 	displayName: 'Extraction field #1 (required)',
+			// 	description: 'Describe the first data you would like FetchFox to extract',
+			// 	name: 'field1',
+			// 	type: 'string',
+			// 	default: '',
+			// 	placeholder: 'Example: "Title of the book"',
+			// 	required: true,
+			// 	displayOptions: {
+			// 		show: {
+			// 			resource: ['extract'],
+			// 		},
+			// 	},
+			// },
+			// {
+			// 	displayName: 'Extraction field #2 (optional)',
+			// 	description: 'Describe the first data you would like FetchFox to extract',
+			// 	name: 'field2',
+			// 	type: 'string',
+			// 	default: '',
+			// 	placeholder: 'Example: "Name of the author"',
+			// 	required: false,
+			// 	displayOptions: {
+			// 		show: {
+			// 			resource: ['extract'],
+			// 		},
+			// 	},
+			// },
+			// {
+			// 	displayName: 'Extraction field #3 (optional)',
+			// 	description: 'Describe the first data you would like FetchFox to extract',
+			// 	name: 'field3',
+			// 	type: 'string',
+			// 	default: '',
+			// 	placeholder: 'Example: "Price of the book in USD"',
+			// 	required: false,
+			// 	displayOptions: {
+			// 		show: {
+			// 			resource: ['extract'],
+			// 		},
+			// 	},
+			// },
+			// {
+			// 	displayName: 'Extraction field #4 (optional)',
+			// 	description: 'Describe the first data you would like FetchFox to extract',
+			// 	name: 'field4',
+			// 	type: 'string',
+			// 	default: '',
+			// 	placeholder: 'Example: "Publication date"',
+			// 	required: false,
+			// 	displayOptions: {
+			// 		show: {
+			// 			resource: ['extract'],
+			// 		},
+			// 	},
+			// },
+			// {
+			// 	displayName: 'Extraction field #5 (optional)',
+			// 	description: 'Describe the first data you would like FetchFox to extract',
+			// 	name: 'field5',
+			// 	type: 'string',
+			// 	default: '',
+			// 	placeholder: 'Example: "Number of stars out of 5.0"',
+			// 	required: false,
+			// 	displayOptions: {
+			// 		show: {
+			// 			resource: ['extract'],
+			// 		},
+			// 	},
+			// },
 
 			// Scraper operations
 			{
@@ -307,6 +382,124 @@ export class FetchFox implements INodeType {
 				},
 			},
 
+			// Template operations
+			{
+				displayName: 'Operation',
+				name: 'operation',
+				// type: 'options',
+				type: 'hidden',
+				noDataExpression: true,
+				displayOptions: {
+					show: {
+						resource: ['template'],
+					},
+				},
+				options: [
+					{
+						name: 'Run pre-built Reddit comments scraper',
+						value: 'reddit',
+						action: 'Run pre-built Reddit comments scraper',
+					},
+					{
+						name: 'Run pre-built Google Maps email scraper',
+						value: 'googleMaps',
+						action: 'Run pre-built Google Maps email scraper',
+					},
+					{
+						name: 'Run pre-built LinkedIn jobs scraper',
+						value: 'linkedIn',
+						action: 'Run pre-built LinkedIn jobs scraper',
+					},
+				],
+				default: 'reddit',
+			},
+
+			// Template options
+			{
+				displayName: 'Reddit comments scraper takes about 1-3 minutes to run',
+				name: 'redditNotice',
+				type: 'notice',
+				default: '',
+				displayOptions: {
+					show: {
+						resource: ['template'],
+						operation: ['reddit'],
+					},
+				},
+			},
+			{
+				displayName: 'Google Maps email scraper takes about 2-4 minutes to run. Will make best effort to find emails, but will not always succeed.',
+				name: 'googleMapsNotice',
+				type: 'notice',
+				default: '',
+				displayOptions: {
+					show: {
+						resource: ['template'],
+						operation: ['googleMaps'],
+					},
+				},
+			},
+			{
+				displayName: 'LinkedIn jobs scraper takes about 2-4 minutes to run.',
+				name: 'linkedInNotice',
+				type: 'notice',
+				default: '',
+				displayOptions: {
+					show: {
+						resource: ['template'],
+						operation: ['linkedIn'],
+					},
+				},
+			},
+
+			{
+				displayName: 'Sub-reddit, eg. "r/CryptoMarkets"',
+				description: 'Which sub-reddit would you like to scrape? You MUST include "r/" prefix',
+				name: 'subreddit',
+				type: 'string',
+				default: '',
+				placeholder: 'Example: "r/CryptoMarkets"',
+				required: false,
+				displayOptions: {
+					show: {
+						resource: ['template'],
+						operation: ['reddit'],
+					},
+				},
+			},
+
+			{
+				displayName: 'Location to scrape',
+				description: 'What location would you like to scrape?',
+				name: 'location',
+				type: 'string',
+				default: '',
+				placeholder: 'Example: "London, UK"',
+				required: false,
+				displayOptions: {
+					show: {
+						resource: ['template'],
+						operation: ['googleMaps', 'linkedIn'],
+					},
+				},
+			},
+
+			{
+				displayName: 'Search keyword',
+				description: 'What keyword would like search for in your scrape?',
+				name: 'keyword',
+				type: 'string',
+				default: '',
+				placeholder: 'Example: "marketing"',
+				required: false,
+				displayOptions: {
+					show: {
+						resource: ['template'],
+						operation: ['googleMaps', 'linkedIn'],
+					},
+				},
+			},
+
 			// Globally available
 			{
 				displayName: 'Max number of results',
@@ -318,7 +511,7 @@ export class FetchFox implements INodeType {
 
 				displayOptions: {
 					show: {
-						resource: ['scraper', 'crawler', 'extract'],
+						resource: ['scraper', 'crawl', 'extract', 'template'],
 					},
 				},
 			},
@@ -338,11 +531,17 @@ export class FetchFox implements INodeType {
 		const { resource, operation } = data.node.parameters;
 
 		switch (`${resource}:${operation}`) {
-			case 'crawler:pattern': return executeCrawlerPattern(this);
-			case 'crawler:prompt': return executeCrawlerPrompt(this);
+			case 'crawl:pattern': return executeCrawlPattern(this);
+			case 'crawl:prompt': return executeCrawlPrompt(this);
+
 			case 'extract:single': return executeExtractSingle(this);
 			case 'extract:multiple': return executeExtractMultiple(this);
+
 			case 'scraper:saved': return executeScraperSaved(this);
+
+			case 'template:reddit': return executeTemplateReddit(this);
+			case 'template:googleMaps': return executeTemplateGoogleMaps(this);
+			case 'template:linkedIn': return executeTemplateLinkedIn(this);
 
 			default:
 				throw new Error('unhandled');
@@ -352,21 +551,18 @@ export class FetchFox implements INodeType {
 	}
 }
 
-async function executeCrawlerPattern(ex: IExecuteFunctions): Promise <INodeExecutionData[][]> {
+async function executeCrawlPattern(ex: IExecuteFunctions): Promise <INodeExecutionData[][]> {
 	const d = ex.getExecuteData();
-	const { limit, url } = d.node.parameters;
+	const { limit, pull } = d.node.parameters;
+	const constStep = getConstStep(ex);
+
 	const workflow = {
 		options: { limit },
 		steps: [
-			{
-				name: 'const',
-				args: {
-					items: [{ url }],
-				},
-			},
+			constStep,
 			{
 				name: 'crawl',
-				args: {},
+				args: { pull: pull == 'yes' },
 			},
 		],
 	};
@@ -374,24 +570,18 @@ async function executeCrawlerPattern(ex: IExecuteFunctions): Promise <INodeExecu
 	return runWorkflow(ex, workflow);
 }
 
-async function executeCrawlerPrompt(ex: IExecuteFunctions): Promise <INodeExecutionData[][]> {
+async function executeCrawlPrompt(ex: IExecuteFunctions): Promise <INodeExecutionData[][]> {
 	const d = ex.getExecuteData();
-	const { limit, prompt, url } = d.node.parameters;
+	const { limit, query } = d.node.parameters;
+	const constStep = getConstStep(ex);
+
+	console.log('query', query);
+
 	const workflow = {
 		options: { limit },
 		steps: [
-			{
-				name: 'const',
-				args: {
-					items: [{ url }],
-				},
-			},
-			{
-				name: 'crawl',
-				args: {
-					query: prompt,
-				},
-			},
+			constStep,
+			{ name: 'crawl', args: { query } },
 		],
 	};
 
@@ -399,48 +589,15 @@ async function executeCrawlerPrompt(ex: IExecuteFunctions): Promise <INodeExecut
 }
 
 async function executeExtractSingle(ex: IExecuteFunctions): Promise <INodeExecutionData[][]> {
-	const d = ex.getExecuteData();
-	const {
-		limit,
-		url,
-		field1,
-		field2,
-		field3,
-		field4,
-		field5,
-	} = d.node.parameters;
-
-	const fields = [
-		field1,
-		field2,
-		field3,
-		field4,
-		field5,
-	];
-	const questions: { [key: string]: string } = {};
-	console.log('fields', fields);
-	for (const field of fields) {
-		if (typeof field === 'string' && field !== '') {
-			questions[field] = field;
-		}
-	}
+	const { limit } = ex.getExecuteData().node.parameters;
+	const constStep = getConstStep(ex);
+	const extractStep = getExtractStep(ex, 'single');
 
 	const workflow = {
 		options: { limit },
 		steps: [
-			{
-				name: 'const',
-				args: {
-					items: [{ url }],
-				},
-			},
-			{
-				name: 'extract',
-				args: {
-					questions,
-					mode: 'single',
-				},
-			},
+			constStep,
+			extractStep,
 		],
 	};
 
@@ -448,48 +605,15 @@ async function executeExtractSingle(ex: IExecuteFunctions): Promise <INodeExecut
 }
 
 async function executeExtractMultiple(ex: IExecuteFunctions): Promise <INodeExecutionData[][]> {
-	const d = ex.getExecuteData();
-	const {
-		limit,
-		url,
-		field1,
-		field2,
-		field3,
-		field4,
-		field5,
-	} = d.node.parameters;
-
-	const fields = [
-		field1,
-		field2,
-		field3,
-		field4,
-		field5,
-	];
-	const questions: { [key: string]: string } = {};
-	console.log('fields', fields);
-	for (const field of fields) {
-		if (typeof field === 'string' && field !== '') {
-			questions[field] = field;
-		}
-	}
+	const { limit } = ex.getExecuteData().node.parameters;
+	const constStep = getConstStep(ex);
+	const extractStep = getExtractStep(ex, 'multiple');
 
 	const workflow = {
 		options: { limit },
 		steps: [
-			{
-				name: 'const',
-				args: {
-					items: [{ url }],
-				},
-			},
-			{
-				name: 'extract',
-				args: {
-					questions,
-					mode: 'multiple',
-				},
-			},
+			constStep,
+			extractStep,
 		],
 	};
 
@@ -527,6 +651,164 @@ async function executeScraperSaved(ex: IExecuteFunctions): Promise <INodeExecuti
 		const jobId = resp.jobId;
 	  return resultsForJob(ex, jobId);
 	}
+}
+
+async function executeTemplateReddit(ex: IExecuteFunctions): Promise <INodeExecutionData[][]> {
+	const d = ex.getExecuteData();
+	let { limit, subreddit } = d.node.parameters;
+
+	if (subreddit && !('' + subreddit).startsWith('r/')) {
+		subreddit = 'r/' + subreddit;
+	}
+
+	console.log('subreddit', subreddit);
+
+	const workflow = {
+		options: { limit },
+		steps: [
+			{
+				"name": "const",
+				"args": {
+					"items": [
+						{
+							"url": "https://old.reddit.com/" + subreddit
+						}
+					],
+					"maxPages": 1,
+				}
+			},
+			{
+				"name": "crawl",
+				"args": {
+					"query": "Look for links to thread pages. Ignore navigation links, links to user profiles, and advertisements.",
+					"maxPages": 3
+				}
+			},
+			{
+				"name": "extract",
+				"args": {
+					"questions": {
+						"username": "What is the username of the commenter?",
+						"points": "What is the number of points for the comment?",
+						"comment": "What is the comment body? Limit to 500 words.",
+						"url": "What is the permalink URL of the comment?"
+					},
+					"mode": "multiple",
+					"view": "html",
+					"maxPages": 1
+				}
+			}
+		],
+	};
+
+	return runWorkflow(ex, workflow);
+}
+
+async function executeTemplateGoogleMaps(ex: IExecuteFunctions): Promise <INodeExecutionData[][]> {
+	const d = ex.getExecuteData();
+	let { limit, location, keyword } = d.node.parameters;
+	console.log('gmaps', limit, location, keyword);
+
+	const workflow = {
+		options: { limit },
+		steps: [
+			{
+				"name": "const",
+				"args": {
+					"items": [
+						{
+							"url": `https://www.google.com/maps/search/${keyword}+near+${location}/`
+						}
+					],
+					"maxPages": 1,
+				}
+			},
+			{
+				"name": "extract",
+				"args": {
+					"questions": {
+						"name": "What is the name of this company?",
+						"url": "What is the official website of this company? Find the off-site URL, *not* the Google places URLFormat: full absolute URL",
+						"address": "The full address of the company"
+					},
+					"single": false,
+					"maxPages": 1
+				}
+			},
+			{
+				"name": "extract",
+				"args": {
+					"questions": {
+						"email": "Find the email for the company, if one exists. If none found, return blank"
+					},
+					"single": true,
+					"view": "html",
+					"examples": null,
+					"limit": null,
+					"maxPages": 1,
+					"mode": "single"
+				}
+			}
+		],
+	};
+
+	return runWorkflow(ex, workflow);
+}
+
+async function executeTemplateLinkedIn(ex: IExecuteFunctions): Promise <INodeExecutionData[][]> {
+	const d = ex.getExecuteData();
+	let { limit, location, keyword } = d.node.parameters;
+	console.log('gmaps', limit, location, keyword);
+
+	const workflow = {
+		options: { limit },
+		steps: [
+			{
+				"name": "const",
+				"args": {
+					"items": [
+						{
+							"url": `https://www.linkedin.com/jobs/search?keywords=${keyword}&location=${location}`,
+						}
+					],
+					"maxPages": 1
+				}
+			},
+			{
+				"name": "extract",
+				"args": {
+					"questions": {
+						"job_title": "What is the job title?",
+						"company_name": "What is the name of the company?",
+						"location": "What is the job location?",
+						"posting_date": "What is the posting date?",
+						"salary_range": "What is the salary range of this job?",
+						"url": "What is the URL of to view this job listing? Format: Absolute URL"
+					},
+					"mode": "multiple",
+					"view": "html",
+					"maxPages": 1,
+				}
+			},
+			{
+				"name": "extract",
+				"args": {
+					"questions": {
+						"applicant_count": "How many applicants are there?",
+						"salary_range": "What is the salary range of this job?",
+						"industries": "What is the Industries for this job?",
+						"job_function": "What is the job function for this job?",
+						"seniority_level": "What is the seniority level for this job?"
+					},
+					"mode": "single",
+					"view": "html",
+					"maxPages": 1
+				}
+			}
+		],
+	};
+
+	return runWorkflow(ex, workflow);
 }
 
 async function runWorkflow(ex: IExecuteFunctions, workflow: any): Promise <INodeExecutionData[][]> {
@@ -663,10 +945,55 @@ function cleanItems(items: Item[]): Item[] {
       if (!key.startsWith('_')) {
         clean[key] = item[key];
       }
-			if (key == '_url') {
-				clean.url = item._url;
-			}
     }
+	  if (!clean.url && item._url) {
+		  clean.url = item._url;
+	  }
     return clean;
   });
+}
+
+function getConstStep(ex: IExecuteFunctions): any {
+	const { url } = ex.getExecuteData().node.parameters;
+
+	const constStep: any = {
+		name: 'const',
+		args: {
+			items: [],
+		},
+	};
+
+	const inp = ex.getInputData();
+	let index = 0;
+	for (const it of inp) {
+		console.log('it ', it);
+		let val = ('' + ex.evaluateExpression(String(url), index++));
+		if (val) {
+			val = val.replace(/^=/, '');
+			console.log('val', val);
+			constStep.args.items.push({ url: val });
+		}
+	}
+	if (!index) {
+		constStep.args.items.push({ url });
+	}
+	return constStep;
+}
+
+function getExtractStep(ex: IExecuteFunctions, mode: string): any {
+	const { fields } = ex.getExecuteData().node.parameters;
+	const questions: { [key: string]: string } = {};
+	if (fields) {
+		const f = (fields as { extractField: any }).extractField;
+		for (const field of f) {
+			questions[field.name] = field.description;
+		}
+	}
+	return {
+		name: 'extract',
+		args: {
+			questions,
+			mode,
+		},
+	};
 }
