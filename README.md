@@ -4,7 +4,9 @@
 
 This n8n community node enables AI powered webscraping with the integration of **[FetchFox](https://fetchfox.ai?r=n8n) in your n8n workflows**. 
 
-**[FetchFox](https://fetchfox.ai?r=n8n)** is an AI powered scraper that lets you extract **any data** from **any website** using just a prompt. You don't need to write code to scrape data anymore.
+**[FetchFox](https://fetchfox.ai?r=n8n)** is an AI powered scraper that lets you extract **any data** from **any website** using just a prompt. You don't need to write code to scrape data anymore. Just put in a URL (or URLs), and FetchFox does the rest.
+
+Unlike other scraper tools, FetchFox is not restricted to a particular website. It can extract data from large social media sites like Reddit, or tiny obscure forum sites. It's flexible and can handle complicated HTML. The FetchFox backendn handles proxy and captcha unblocking, which means you can focus on just getting your data.
 
 ## Installation
 
