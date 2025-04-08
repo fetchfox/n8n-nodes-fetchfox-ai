@@ -3,6 +3,7 @@ import {
 	INodeType,
 	INodeTypeDescription,
 	IExecuteFunctions,
+	IDataObject,
 	ILoadOptionsFunctions,
 	INodePropertyOptions,
 	IRequestOptions,
@@ -12,15 +13,15 @@ const host = 'https://staging.fetchfox.ai';
 
 export class FetchFox implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'FetchFox 2',
-		name: 'FetchFox 2',
+		displayName: 'FetchFox 3',
+		name: 'FetchFox 3',
 		icon: 'file:fox.svg',
 		group: ['transform'],
 		version: 1,
-		description: 'Scrape data with FetchFox',
+		description: 'Scrape data with FetchFox 3',
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
 		defaults: {
-			name: 'FetchFox',
+			name: 'FetchFox 3',
 		},
 		inputs: ['main'],
 		outputs: ['main'],
@@ -102,8 +103,8 @@ export class FetchFox implements INodeType {
 			},
 			{
 				displayName: 'Crawl prompt for AI',
-				description: 'FetchFox will find URLs based on this prompt',
-				name: 'url',
+				description: 'FetchFox will find URLs based on this prompt 33',
+				name: 'query',
 				type: 'string',
 				default: '',
 				placeholder: 'Example: "Look for links to profile pages"',
@@ -117,8 +118,8 @@ export class FetchFox implements INodeType {
 			},
 
 			{
-				displayName: 'URL pattern to find',
-				description: 'FetchFox find URLs matching this pattern. For example, https://www.example.com/directory/*',
+				displayName: 'URL pattern to find. Required: least one * wildcard',
+				description: 'FetchFox find URLs matching this pattern. For example, https://www.example.com/directory/*. Pattern must have at least on * in it',
 				name: 'url',
 				type: 'string',
 				default: 'https://pokemondb.net/pokedex/*',
@@ -162,7 +163,7 @@ export class FetchFox implements INodeType {
 			{
 				displayName: 'Target URL for extraction',
 				description: `Enter the URL from which you'd like to scrape data`,
-				name: 'prompt',
+				name: 'url',
 				type: 'string',
 				default: '',
 				placeholder: 'https://www.example.com/directory/page-1',
@@ -176,7 +177,7 @@ export class FetchFox implements INodeType {
 			{
 				displayName: 'Data extraction prompt',
 				description: 'Describe the data you would like FetchFox to extract',
-				name: 'prompt',
+				name: 'question',
 				type: 'string',
 				default: '',
 				placeholder: 'Example: the title, author, and price of each book',
@@ -209,21 +210,7 @@ export class FetchFox implements INodeType {
 				default: 'saved',
 			},
 
-			// Extract options
-			{
-				displayName: 'Target URL for extraction',
-				description: `Enter the URL from which you'd like to scrape data`,
-				name: 'prompt',
-				type: 'string',
-				default: '',
-				placeholder: 'https://www.example.com/directory/page-1',
-				required: true,
-				displayOptions: {
-					show: {
-						resource: ['extract'],
-					},
-				},
-			},
+			// Scraper options
 			{
 				displayName: 'Select scraper',
 				description: 'Which scraper would you like data from?',
@@ -334,6 +321,9 @@ export class FetchFox implements INodeType {
 			case 'crawler:pattern':
 				return executeCrawlerPattern(this);
 
+			case 'crawler:prompt':
+				return executeCrawlerPrompt(this);
+
 			default:
 				throw new Error('unhandled');
 		}
@@ -364,8 +354,32 @@ async function executeCrawlerPattern(ex: IExecuteFunctions): Promise <INodeExecu
 	return runWorkflow(ex, workflow);
 }
 
+async function executeCrawlerPrompt(ex: IExecuteFunctions): Promise <INodeExecutionData[][]> {
+	const d = ex.getExecuteData();
+	const { limit, prompt, url } = d.node.parameters;
+	const workflow = {
+		options: { limit },
+		steps: [
+			{
+				name: 'const',
+				args: {
+					items: [{ url }],
+				},
+			},
+			{
+				name: 'crawl',
+				args: {
+					query: prompt,
+				},
+			},
+		],
+	};
+
+	return runWorkflow(ex, workflow);
+}
+
 async function runWorkflow(ex: IExecuteFunctions, workflow: any): Promise <INodeExecutionData[][]> {
-	console.log('workflow', workflow);
+	console.log('workflow', JSON.stringify(workflow, null, 2));
 	const workflowResp = await ex.helpers.requestWithAuthentication.call(
 		ex,
 		'fetchFoxApi',
@@ -389,7 +403,7 @@ async function runWorkflow(ex: IExecuteFunctions, workflow: any): Promise <INode
 	console.log('run resp', runResp);
 	const jobId = runResp.jobId;
 
-	const items = await new Promise(async (ok) => {
+	const items: IDataObject[] = await new Promise<IDataObject[]>(async (ok) => {
 		let count = 0;
 		const poll = async () => {
 			console.log('poll', count++, jobId);
@@ -407,9 +421,10 @@ async function runWorkflow(ex: IExecuteFunctions, workflow: any): Promise <INode
 				console.log('fetch error:', e);
 			}
 
-			console.log('poll got:', resp);
+			const items = resp.results?.items || [];
+			console.log('poll got:', items.length);
 			if (resp?.done) {
-				ok(cleanItems(resp.results?.items || []));
+				ok(cleanItems(items));
 			} else {
 				setTimeout(poll, 1000);
 			}
@@ -494,6 +509,9 @@ function cleanItems(items: Item[]): Item[] {
       if (!key.startsWith('_')) {
         clean[key] = item[key];
       }
+			if (key == '_url') {
+				clean.url = item._url;
+			}
     }
     return clean;
   });
