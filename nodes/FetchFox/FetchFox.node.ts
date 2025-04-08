@@ -137,7 +137,8 @@ export class FetchFox implements INodeType {
 			{
 				displayName: 'Operation',
 				name: 'operation',
-				type: 'options',
+				// type: 'options',
+				type: 'hidden',
 				noDataExpression: true,
 				displayOptions: {
 					show: {
@@ -152,7 +153,7 @@ export class FetchFox implements INodeType {
 					},
 					{
 						name: 'Extract multiple items per URL',
-						value: 'single',
+						value: 'multiple',
 						action: 'Extract multiple items per URL',
 					},
 				],
@@ -175,13 +176,69 @@ export class FetchFox implements INodeType {
 				},
 			},
 			{
-				displayName: 'Data extraction prompt',
-				description: 'Describe the data you would like FetchFox to extract',
-				name: 'question',
+				displayName: 'Extraction field #1 (required)',
+				description: 'Describe the first data you would like FetchFox to extract',
+				name: 'field1',
 				type: 'string',
 				default: '',
-				placeholder: 'Example: the title, author, and price of each book',
+				placeholder: 'Example: "Title of the book"',
 				required: true,
+				displayOptions: {
+					show: {
+						resource: ['extract'],
+					},
+				},
+			},
+			{
+				displayName: 'Extraction field #2 (optional)',
+				description: 'Describe the first data you would like FetchFox to extract',
+				name: 'field2',
+				type: 'string',
+				default: '',
+				placeholder: 'Example: "Name of the author"',
+				required: false,
+				displayOptions: {
+					show: {
+						resource: ['extract'],
+					},
+				},
+			},
+			{
+				displayName: 'Extraction field #3 (optional)',
+				description: 'Describe the first data you would like FetchFox to extract',
+				name: 'field3',
+				type: 'string',
+				default: '',
+				placeholder: 'Example: "Price of the book in USD"',
+				required: false,
+				displayOptions: {
+					show: {
+						resource: ['extract'],
+					},
+				},
+			},
+			{
+				displayName: 'Extraction field #4 (optional)',
+				description: 'Describe the first data you would like FetchFox to extract',
+				name: 'field4',
+				type: 'string',
+				default: '',
+				placeholder: 'Example: "Publication date"',
+				required: false,
+				displayOptions: {
+					show: {
+						resource: ['extract'],
+					},
+				},
+			},
+			{
+				displayName: 'Extraction field #5 (optional)',
+				description: 'Describe the first data you would like FetchFox to extract',
+				name: 'field5',
+				type: 'string',
+				default: '',
+				placeholder: 'Example: "Number of stars out of 5.0"',
+				required: false,
 				displayOptions: {
 					show: {
 						resource: ['extract'],
@@ -318,11 +375,10 @@ export class FetchFox implements INodeType {
 		const { resource, operation } = data.node.parameters;
 
 		switch (`${resource}:${operation}`) {
-			case 'crawler:pattern':
-				return executeCrawlerPattern(this);
-
-			case 'crawler:prompt':
-				return executeCrawlerPrompt(this);
+			case 'crawler:pattern': return executeCrawlerPattern(this);
+			case 'crawler:prompt': return executeCrawlerPrompt(this);
+			case 'extract:single': return executeExtractSingle(this);
+			case 'extract:multiple': return executeExtractMultiple(this);
 
 			default:
 				throw new Error('unhandled');
@@ -370,6 +426,104 @@ async function executeCrawlerPrompt(ex: IExecuteFunctions): Promise <INodeExecut
 				name: 'crawl',
 				args: {
 					query: prompt,
+				},
+			},
+		],
+	};
+
+	return runWorkflow(ex, workflow);
+}
+
+async function executeExtractSingle(ex: IExecuteFunctions): Promise <INodeExecutionData[][]> {
+	const d = ex.getExecuteData();
+	const {
+		limit,
+		url,
+		field1,
+		field2,
+		field3,
+		field4,
+		field5,
+	} = d.node.parameters;
+
+	const fields = [
+		field1,
+		field2,
+		field3,
+		field4,
+		field5,
+	];
+	const questions: { [key: string]: string } = {};
+	console.log('fields', fields);
+	for (const field of fields) {
+		if (typeof field === 'string' && field !== '') {
+			questions[field] = field;
+		}
+	}
+
+	const workflow = {
+		options: { limit },
+		steps: [
+			{
+				name: 'const',
+				args: {
+					items: [{ url }],
+				},
+			},
+			{
+				name: 'extract',
+				args: {
+					questions,
+					mode: 'single',
+				},
+			},
+		],
+	};
+
+	return runWorkflow(ex, workflow);
+}
+
+async function executeExtractMultiple(ex: IExecuteFunctions): Promise <INodeExecutionData[][]> {
+	const d = ex.getExecuteData();
+	const {
+		limit,
+		url,
+		field1,
+		field2,
+		field3,
+		field4,
+		field5,
+	} = d.node.parameters;
+
+	const fields = [
+		field1,
+		field2,
+		field3,
+		field4,
+		field5,
+	];
+	const questions: { [key: string]: string } = {};
+	console.log('fields', fields);
+	for (const field of fields) {
+		if (typeof field === 'string' && field !== '') {
+			questions[field] = field;
+		}
+	}
+
+	const workflow = {
+		options: { limit },
+		steps: [
+			{
+				name: 'const',
+				args: {
+					items: [{ url }],
+				},
+			},
+			{
+				name: 'extract',
+				args: {
+					questions,
+					mode: 'multiple',
 				},
 			},
 		],
