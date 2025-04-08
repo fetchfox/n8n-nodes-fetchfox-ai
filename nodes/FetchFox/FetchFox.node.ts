@@ -275,7 +275,7 @@ export class FetchFox implements INodeType {
 			// Scraper options
 			{
 				displayName: 'Select Scraper Name or ID',
-				description: 'Which scraper would you like data from?',
+				description: 'Which scraper would you like data from?. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code-examples/expressions/">expression</a>.',
 				name: 'scrapeId',
 				default: '',
 				required: true,
@@ -295,7 +295,7 @@ export class FetchFox implements INodeType {
 			{
 				displayName: 'New Run, or Just Get Latest Results? Name or ID',
 				noDataExpression: true,
-				description: 'Do you want to do new run of this scraper, or simply pull the results from the most recent run?',
+				description: 'Do you want to do new run of this scraper, or simply pull the results from the most recent run?. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code-examples/expressions/">expression</a>.',
 				name: 'mode',
 				default: '',
 				required: true,
