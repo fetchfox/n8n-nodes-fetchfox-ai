@@ -8,7 +8,7 @@ import {
 export class FetchFoxApi implements ICredentialType {
 	name = 'fetchFoxApi';
 	displayName = 'FetchFox API';
-	documentationUrl = 'https://docs.fetchfox.ai';
+	documentationUrl = 'https://docs.fetchfox.ai/n8n';
 	properties: INodeProperties[] = [
 		{
 			displayName: 'API Key',
@@ -34,13 +34,4 @@ export class FetchFoxApi implements ICredentialType {
 			url: '/user/me',
 		},
 	};
-
-	// authenticate = {
-	// 	type: 'generic',
-	// 	properties: {
-	// 		headers: {
-	// 			'Authorization': '=Bearer {{$credentials.apiKey}}'
-	// 		}
-	// 	}
-	// } as IAuthenticateGeneric;
 }
