@@ -72,10 +72,10 @@ export class FetchFox implements INodeType {
 					{
 						name: 'Find URLs Matching a URL Pattern',
 						value: 'pattern',
-						action: 'Find URLs matching a pattern',
+						action: 'Find urls matching a pattern',
 					},
 				],
-				default: 'prompt',
+				default: 'pattern',
 			},
 
 			// Crawl options
@@ -145,11 +145,11 @@ export class FetchFox implements INodeType {
 				type: 'options',
 				options: [
 					{
-						name: 'None ($0.50 per GB)',
+						name: 'None ($0.01 per GB)',
 						value: 'none',
 					},
 					{
-						name: 'Datacenter ($0.50 per GB)',
+						name: 'Datacenter ($0.01 per GB)',
 						value: 'datacenter',
 					},
 					{
@@ -157,7 +157,7 @@ export class FetchFox implements INodeType {
 						value: 'residential_cdp',
 					},
 					{
-						name: 'Residential, load images/fonts/etc. ($8.50 per GB)',
+						name: 'Residential, Load Images, Fonts, Etc ($8.50 per GB)',
 						value: 'residential_cdp_assets',
 					},
 				],
@@ -170,16 +170,16 @@ export class FetchFox implements INodeType {
 			},
 			{
 				displayName: 'Content Transformation',
-				description: 'How should the page content be transformed? Less data lowers AI costs.',
+				description: 'How should the page content be transformed? Less data lowers AI costs',
 				name: 'contentTransform',
 				type: 'options',
 				options: [
 					{
-						name: 'Text only',
+						name: 'Text Only',
 						value: 'text_only',
 					},
 					{
-						name: 'Text and basic HTML (keep links and image URLs only)',
+						name: 'Text and Basic HTML (Keep Links and Image URLs Only)',
 						value: 'slim_html',
 					},
 					{
