@@ -3,17 +3,13 @@ import {
 	INodeType,
 	INodeTypeDescription,
 	IExecuteFunctions,
-	// IDataObject,
-	// ILoadOptionsFunctions,
-	// INodePropertyOptions,
-	// IRequestOptions,
 } from 'n8n-workflow';
 
 const host = 'https://dev.api.fetchfox.ai';
 
 export class FetchFox implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'FetchFox',
+		displayName: 'FetchFox AI Scraper',
 		name: 'fetchFox',
 		icon: 'file:fox.svg',
 		group: ['transform'],
