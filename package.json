@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-fetchfox",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "n8n node to scrape data using FetchFox",
   "keywords": [
     "n8n-community-node-package"
