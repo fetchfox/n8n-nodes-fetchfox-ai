@@ -1,6 +1,6 @@
 {
-  "name": "n8n-nodes-fetchfox",
-  "version": "1.0.4",
+  "name": "n8n-nodes-fetchfox-ai",
+  "version": "1.0.5",
   "description": "n8n node to scrape data using FetchFox",
   "keywords": [
     "n8n-community-node-package"
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fetchfox/n8n-nodes-fetchfox.git"
+    "url": "git+https://github.com/fetchfox/n8n-nodes-fetchfox-ai.git"
   },
   "engines": {
     "node": ">=18.10",
