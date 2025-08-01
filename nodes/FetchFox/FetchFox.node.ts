@@ -14,7 +14,7 @@ export class FetchFox implements INodeType {
 		icon: 'file:fox.svg',
 		group: ['transform'],
 		version: 1,
-		description: 'Scrape data with FetchFox',
+		description: 'Scrape public web data with FetchFox',
 		subtitle: '={{$parameter["resource"]}}',
 		defaults: {
 			name: 'FetchFox'
