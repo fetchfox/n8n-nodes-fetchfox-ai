@@ -5,7 +5,7 @@ import {
 	IExecuteFunctions,
 } from 'n8n-workflow';
 
-const host = 'https://dev.api.fetchfox.ai';
+const host = 'https://api.fetchfox.ai';
 
 export class FetchFox implements INodeType {
 	description: INodeTypeDescription = {
@@ -250,17 +250,19 @@ export class FetchFox implements INodeType {
 
 		const { resource, operation } = data.node.parameters;
 
+		const inputData = this.getInputData();
+
 		switch (`${resource}:${operation}`) {
-			case 'crawl:pattern': return executeCrawlPattern(this);
-			case 'extract:single': return executeExtract(this);
-			case 'extract:multiple': return executeExtract(this);
+			case 'crawl:pattern': return executeCrawlPattern(this, inputData);
+			case 'extract:single': return executeExtract(this, inputData);
+			case 'extract:multiple': return executeExtract(this, inputData);
 		}
 
 		return [];
 	}
 }
 
-async function executeCrawlPattern(ex: IExecuteFunctions): Promise <INodeExecutionData[][]> {
+async function executeCrawlPattern(ex: IExecuteFunctions, inputData: INodeExecutionData[]): Promise <INodeExecutionData[][]> {
 	const d = ex.getExecuteData();
 	console.log('crawl params', d.node.parameters);
 
@@ -294,11 +296,21 @@ async function executeCrawlPattern(ex: IExecuteFunctions): Promise <INodeExecuti
 	return [ex.helpers.returnJsonArray(urls)];
 }
 
-async function executeExtract(ex: IExecuteFunctions): Promise <INodeExecutionData[][]> {
+async function executeExtract(ex: IExecuteFunctions, inputData: INodeExecutionData[]): Promise <INodeExecutionData[][]> {
 	const d = ex.getExecuteData();
 
-	const url = d.node.parameters.url;
+	const urls = [];
+	for (let i = 0; i < inputData.length; i++) {
+		const expr = '' + ex.getExecuteData().node.parameters.url;
+		const evaluatedUrl = ex.evaluateExpression(expr, i);
+		console.log('evaluatedUrl', evaluatedUrl);
+		urls.push(('' + evaluatedUrl).replace(/^=/, ''));
+	}
+
+	console.log('urls', urls);
+
 	const template: { [key: string]: string } = {};
+
 	const { fields } = ex.getExecuteData().node.parameters;
 	if (fields) {
 		const f = (fields as { extractField: any }).extractField;
@@ -308,7 +320,7 @@ async function executeExtract(ex: IExecuteFunctions): Promise <INodeExecutionDat
 	}
 
 	const body = {
-		urls: [url],
+		urls,
 		template,
 		perPage: d.node.parameters.operation == 'multiple' ? 'many' : 'one',
 		proxy: d.node.parameters.proxy,
@@ -327,7 +339,12 @@ async function executeExtract(ex: IExecuteFunctions): Promise <INodeExecutionDat
 		});
 
 
+	console.log('Got resp:', resp);
+
 	const items = resp.results.items;
+
+	console.log('Got items:', items);
+
 	const metrics = resp.metrics;
 
 	if (items[0]) {
