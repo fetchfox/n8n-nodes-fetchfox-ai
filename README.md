@@ -1,6 +1,4 @@
-# n8n-nodes-fetchfox
-
-> **Currently in BETA and under active development.**
+# n8n-nodes-fetchfox-ai
 
 This n8n community node enables AI powered webscraping with the integration of **[FetchFox](https://fetchfox.ai?r=n8n) in your n8n workflows**. 
 
@@ -11,10 +9,6 @@ Unlike other scraper tools, FetchFox is not restricted to a particular website. 
 ## Installation
 
 Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) in the n8n community nodes documentation.
-
-## Tutorial
-
-Read our [FetchFox <> n8n tutorial](https://docs.fetchfox.ai/n8n) for how to use this node to scrape data within your n8n workflow.
 
 ## Need help?
 
