@@ -91,6 +91,21 @@ export class FetchFox implements INodeType {
 				},
 			},
 
+			{
+				displayName: 'Max Visits',
+				description: 'The maximum number of pages to crawl',
+				name: 'maxVisits',
+				type: 'number',
+				default: 50,
+				placeholder: '50',
+				displayOptions: {
+					show: {
+						resource: ['crawl'],
+						operation: ['pattern'],
+					},
+				},
+			},
+
 			// Extract operations
 			{
 				displayName: 'Operation',
@@ -269,6 +284,7 @@ async function executeCrawlPattern(ex: IExecuteFunctions, inputData: INodeExecut
 	// TODO: support start urls, max depth, etc.
 	const body = {
 		pattern: d.node.parameters.pattern,
+		maxVisits: d.node.parameters.maxVisits ?? 50,
 		proxy: d.node.parameters.proxy,
 	};
 
